@@ -110,26 +110,43 @@ if (isset($_SESSION['login_id'])) {
         <li data-target="#heroCarousel" data-slide-to="0" class="active"></li>
         <li data-target="#heroCarousel" data-slide-to="1"></li>
         <li data-target="#heroCarousel" data-slide-to="2"></li>
+        <li data-target="#heroCarousel" data-slide-to="3"></li>
+        <li data-target="#heroCarousel" data-slide-to="4"></li>
     </ol>
 
     <div class="carousel-inner">
-        <div class="carousel-item active" style="background-image: url('assets/uploads/single_room.jpg');">
+        <div class="carousel-item active" style="background-image: url('assets/uploads/single.jpeg');">
             <div class="carousel-caption">
                 <h1>Cozy Single Rooms</h1>
                 <p>Affordable & comfortable living</p>
                 <a href="login.php" class="btn btn-neon">Login</a>
             </div>
         </div>
-        <div class="carousel-item" style="background-image: url('assets/uploads/double_room.jpg');">
+        <div class="carousel-item" style="background-image: url('assets/uploads/bed.jpeg');">
             <div class="carousel-caption">
-                <h1>Spacious Double Rooms</h1>
+                <h1>Spacious  BedSitter houses</h1>
+                <p>Perfect for Bachelors or College Students</p>
+                <a href="login.php" class="btn btn-neon">Login</a>
+            </div>
+        </div>
+        <div class="carousel-item" style="background-image: url('assets/uploads/1bd.jpeg');">
+            <div class="carousel-caption">
+                <h1>Spacious One BedRoom houses</h1>
                 <p>Perfect for families or roommates</p>
                 <a href="login.php" class="btn btn-neon">Login</a>
             </div>
         </div>
-        <div class="carousel-item" style="background-image: url('assets/uploads/luxury_house.jpg');">
+        <div class="carousel-item" style="background-image: url('assets/uploads/2bd_room.jpeg');">
             <div class="carousel-caption">
-                <h1>Luxury Houses</h1>
+                <h1>Premium Two BedRoom Houses</h1>
+                <p>Premium living spaces for everyone</p>
+                <a href="login.php" class="btn btn-neon">Login</a>
+            </div>
+        </div>
+
+        <div class="carousel-item" style="background-image: url('assets/uploads/3bd_house.jpeg');">
+            <div class="carousel-caption">
+                <h1>Luxury Three BedRoom Houses</h1>
                 <p>Premium living spaces for everyone</p>
                 <a href="login.php" class="btn btn-neon">Login</a>
             </div>

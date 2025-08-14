@@ -54,6 +54,9 @@
 								  </button>
 								  <div class="dropdown-menu">
 								    <a class="dropdown-item edit_user" href="javascript:void(0)" data-id = '<?php echo $row['id'] ?>'>Edit</a>
+								    <a class="dropdown-item change_password" href="javascript:void(0)" 
+								       data-id="<?php echo $row['id'] ?>" 
+								       data-name="<?php echo ucwords($row['name']) ?>">Change Password</a>
 								    <div class="dropdown-divider"></div>
 								    <a class="dropdown-item delete_user" href="javascript:void(0)" data-id = '<?php echo $row['id'] ?>'>Delete</a>
 								  </div>
@@ -69,6 +72,48 @@
 	</div>
 
 </div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="changePasswordForm">
+        <div class="modal-header">
+          <h5 class="modal-title" id="changePasswordLabel">Change Password for <span id="userName"></span></h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span>&times;</span>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <input type="hidden" id="userId" name="id">
+          
+          <div class="form-group">
+            <label for="newPassword">New Password</label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="newPassword" name="password" required>
+              <div class="input-group-append">
+                <span class="input-group-text" onclick="togglePasswordVisibility('newPassword', 'changeToggleIcon')" style="cursor: pointer;">
+                  <i id="changeToggleIcon" class="fa fa-eye"></i>
+                </span>
+              </div>
+            </div>
+            <small id="changeStrength" class="form-text"></small>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Save Password</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/password_strength.js"></script>
+<script src="assets/js/toggle_password.js"></script>
+
 <script>
 	$('table').dataTable();
 $('#new_user').click(function(){
@@ -97,4 +142,32 @@ $('.delete_user').click(function(){
 			}
 		})
 	}
+
+// Change Password
+$('.change_password').click(function(){
+	let userId = $(this).data('id');
+	let userName = $(this).data('name');
+	$('#userId').val(userId);
+	$('#userName').text(userName);
+	$('#changePasswordModal').modal('show');
+});
+
+// Live password strength
+$('#newPassword').on('input', function(){
+	let strength = checkPasswordStrength(this.value);
+	$('#changeStrength').text(strength.text).css('color', strength.color);
+});
+
+// Submit change password form
+$('#changePasswordForm').submit(function(e){
+	e.preventDefault();
+	$.post('ajax.php?action=change_user_password', $(this).serialize(), function(response){
+		if(response.status === 'success'){
+			alert_toast('Password updated successfully', 'success');
+			$('#changePasswordModal').modal('hide');
+		} else {
+			alert_toast('Error: ' + response.msg, 'danger');
+		}
+	}, 'json');
+});
 </script>

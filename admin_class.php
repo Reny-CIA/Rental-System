@@ -1,777 +1,331 @@
 <?php
-session_start();
-ini_set('display_errors', 1);
-Class Action {
-	private $db;
+ini_set('display_errors', 0);
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 
-	public function __construct() {
-		ob_start();
-   	include 'db_connect.php';
-    
-    $this->db = $conn;
-	}
-	function __destruct() {
-	    $this->db->close();
-	    ob_end_flush();
-	}
+class Action {
+    private $db;
 
-	function login(){
-		
-			extract($_POST);		
-			$qry = $this->db->query("SELECT * FROM users where username = '".$username."' and password = '".md5($password)."' ");
-			if($qry->num_rows > 0){
-				foreach ($qry->fetch_array() as $key => $value) {
-					if($key != 'passwors' && !is_numeric($key))
-						$_SESSION['login_'.$key] = $value;
-				}
-				if($_SESSION['login_type'] != 1){
-					foreach ($_SESSION as $key => $value) {
-						unset($_SESSION[$key]);
-					}
-					return 2 ;
-					
-				}
-					return 1;
-			}else{
-				return 3;
-			}
-	}
-	function login2(){
-		
-			extract($_POST);
-			if(isset($email))
-				$username = $email;
-		$qry = $this->db->query("SELECT * FROM users where username = '".$username."' and password = '".md5($password)."' ");
-		if($qry->num_rows > 0){
-			foreach ($qry->fetch_array() as $key => $value) {
-				if($key != 'passwors' && !is_numeric($key))
-					$_SESSION['login_'.$key] = $value;
-			}
-			if($_SESSION['login_alumnus_id'] > 0){
-				$bio = $this->db->query("SELECT * FROM alumnus_bio where id = ".$_SESSION['login_alumnus_id']);
-				if($bio->num_rows > 0){
-					foreach ($bio->fetch_array() as $key => $value) {
-						if($key != 'passwors' && !is_numeric($key))
-							$_SESSION['bio'][$key] = $value;
-					}
-				}
-			}
-			if($_SESSION['bio']['status'] != 1){
-					foreach ($_SESSION as $key => $value) {
-						unset($_SESSION[$key]);
-					}
-					return 2 ;
-				
-				}
-				return 1;
-		}else{
-			return 3;
-		}
-	}
-	function logout(){
-		session_destroy();
-		foreach ($_SESSION as $key => $value) {
-			unset($_SESSION[$key]);
-		}
-		header("location:login.php");
-	}
-	function logout2(){
-		session_destroy();
-		foreach ($_SESSION as $key => $value) {
-			unset($_SESSION[$key]);
-		}
-		header("location:../index.php");
-	}
+    public function __construct() {
+        include 'db_connect.php';
+        $this->db = $conn;
+    }
 
-	function save_user(){
-		extract($_POST);
-		$data = " name = '$name' ";
-		$data .= ", username = '$username' ";
-		if(!empty($password))
-		$data .= ", password = '".md5($password)."' ";
-		$data .= ", type = '$type' ";
-		if($type == 1)
-			$establishment_id = 0;
-		$data .= ", establishment_id = '$establishment_id' ";
-		$chk = $this->db->query("Select * from users where username = '$username' and id !='$id' ")->num_rows;
-		if($chk > 0){
-			return 2;
-			
-		}
-		if(empty($id)){
-			$save = $this->db->query("INSERT INTO users set ".$data);
-		}else{
-			$save = $this->db->query("UPDATE users set ".$data." where id = ".$id);
-		}
-		if($save){
-			return 1;
-		}
-	}
-	function delete_user(){
-		extract($_POST);
-		$delete = $this->db->query("DELETE FROM users where id = ".$id);
-		if($delete)
-			return 1;
-	}
-	function signup(){
-		extract($_POST);
-		$data = " name = '".$firstname.' '.$lastname."' ";
-		$data .= ", username = '$email' ";
-		$data .= ", password = '".md5($password)."' ";
-		$chk = $this->db->query("SELECT * FROM users where username = '$email' ")->num_rows;
-		if($chk > 0){
-			return 2;
-			
-		}
-			$save = $this->db->query("INSERT INTO users set ".$data);
-		if($save){
-			$uid = $this->db->insert_id;
-			$data = '';
-			foreach($_POST as $k => $v){
-				if($k =='password')
-					continue;
-				if(empty($data) && !is_numeric($k) )
-					$data = " $k = '$v' ";
-				else
-					$data .= ", $k = '$v' ";
-			}
-			if($_FILES['img']['tmp_name'] != ''){
-							$fname = strtotime(date('y-m-d H:i')).'_'.$_FILES['img']['name'];
-							$move = move_uploaded_file($_FILES['img']['tmp_name'],'assets/uploads/'. $fname);
-							$data .= ", avatar = '$fname' ";
+    public function __destruct() {
+        $this->db->close();
+    }
 
-			}
-			$save_alumni = $this->db->query("INSERT INTO alumnus_bio set $data ");
-			if($data){
-				$aid = $this->db->insert_id;
-				$this->db->query("UPDATE users set alumnus_id = $aid where id = $uid ");
-				$login = $this->login2();
-				if($login)
-				return 1;
-			}
-		}
-	}
-	function update_account(){
-		extract($_POST);
-		$data = " name = '".$firstname.' '.$lastname."' ";
-		$data .= ", username = '$email' ";
-		if(!empty($password))
-		$data .= ", password = '".md5($password)."' ";
-		$chk = $this->db->query("SELECT * FROM users where username = '$email' and id != '{$_SESSION['login_id']}' ")->num_rows;
-		if($chk > 0){
-			return 2;
-		
-		}
-			$save = $this->db->query("UPDATE users set $data where id = '{$_SESSION['login_id']}' ");
-		if($save){
-			$data = '';
-			foreach($_POST as $k => $v){
-				if($k =='password')
-					continue;
-				if(empty($data) && !is_numeric($k) )
-					$data = " $k = '$v' ";
-				else
-					$data .= ", $k = '$v' ";
-			}
-			if($_FILES['img']['tmp_name'] != ''){
-							$fname = strtotime(date('y-m-d H:i')).'_'.$_FILES['img']['name'];
-							$move = move_uploaded_file($_FILES['img']['tmp_name'],'assets/uploads/'. $fname);
-							$data .= ", avatar = '$fname' ";
+    // ===== LOGIN =====
+public function login($type = null) {
+    // Ensure no extra PHP notices mess with JSON output
+    ini_set('display_errors', 0);
+    error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 
-			}
-			$save_alumni = $this->db->query("UPDATE alumnus_bio set $data where id = '{$_SESSION['bio']['id']}' ");
-			if($data){
-				foreach ($_SESSION as $key => $value) {
-					unset($_SESSION[$key]);
-				}
-				$login = $this->login2();
-				if($login)
-				return 1;
-			}
-		}
-	}
+    // Start session only if none exists
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
 
-	function save_settings(){
-		extract($_POST);
-		$data = " name = '".str_replace("'","&#x2019;",$name)."' ";
-		$data .= ", email = '$email' ";
-		$data .= ", contact = '$contact' ";
-		$data .= ", about_content = '".htmlentities(str_replace("'","&#x2019;",$about))."' ";
-		if($_FILES['img']['tmp_name'] != ''){
-						$fname = strtotime(date('y-m-d H:i')).'_'.$_FILES['img']['name'];
-						$move = move_uploaded_file($_FILES['img']['tmp_name'],'assets/uploads/'. $fname);
-					$data .= ", cover_img = '$fname' ";
+    header('Content-Type: application/json; charset=utf-8');
 
-		}
-		
-		// echo "INSERT INTO system_settings set ".$data;
-		$chk = $this->db->query("SELECT * FROM system_settings");
-		if($chk->num_rows > 0){
-			$save = $this->db->query("UPDATE system_settings set ".$data);
-		}else{
-			$save = $this->db->query("INSERT INTO system_settings set ".$data);
-		}
-		if($save){
-		$query = $this->db->query("SELECT * FROM system_settings limit 1")->fetch_array();
-		foreach ($query as $key => $value) {
-			if(!is_numeric($key))
-				$_SESSION['system'][$key] = $value;
-		}
+    if (!isset($_POST['username']) || !isset($_POST['password'])) {
+        echo json_encode(['status'=>'error','msg'=>'Username and password required']);
+        exit;
+    }
 
-			return 1;
-				}
-	}
+    $username = trim($_POST['username']);
+    $password = $_POST['password'];
 
-	
-	function save_category(){
-		extract($_POST);
-		$data = " name = '$name' ";
-			if(empty($id)){
-				$save = $this->db->query("INSERT INTO categories set $data");
-			}else{
-				$save = $this->db->query("UPDATE categories set $data where id = $id");
-			}
-		if($save)
-			return 1;
-	}
-	function delete_category(){
-		extract($_POST);
-		$delete = $this->db->query("DELETE FROM categories where id = ".$id);
-		if($delete){
-			return 1;
-		}
-	}
-	function save_house(){
-		extract($_POST);
-		$data = " house_no = '$house_no' ";
-		$data .= ", description = '$description' ";
-		$data .= ", category_id = '$category_id' ";
-		$data .= ", price = '$price' ";
-		$chk = $this->db->query("SELECT * FROM houses where house_no = '$house_no' ")->num_rows;
-		if($chk > 0 ){
-			return 2;
-		
-		}
-			if(empty($id)){
-				$save = $this->db->query("INSERT INTO houses set $data");
-			}else{
-				$save = $this->db->query("UPDATE houses set $data where id = $id");
-			}
-		if($save)
-			return 1;
-	}
-	function delete_house(){
-		extract($_POST);
-		$delete = $this->db->query("DELETE FROM houses where id = ".$id);
-		if($delete){
-			return 1;
-		}
-	}
-	function save_tenant(){
-		extract($_POST);
-		$data = " firstname = '$firstname' ";
-		$data .= ", lastname = '$lastname' ";
-		$data .= ", middlename = '$middlename' ";
-		$data .= ", email = '$email' ";
-		$data .= ", contact = '$contact' ";
-		$data .= ", house_id = '$house_id' ";
-		$data .= ", date_in = '$date_in' ";
-			if(empty($id)){
-				
-				$save = $this->db->query("INSERT INTO tenants set $data");
-			}else{
-				$save = $this->db->query("UPDATE tenants set $data where id = $id");
-			}
-		if($save)
-			return 1;
-	}
-	function delete_tenant(){
-		extract($_POST);
-		$delete = $this->db->query("UPDATE tenants set status = 0 where id = ".$id);
-		if($delete){
-			return 1;
-		}
-	}
-	function get_tdetails(){
-		extract($_POST);
-		$data =array();
-		$tenants =$this->db->query("SELECT t.*,concat(t.lastname,', ',t.firstname,' ',t.middlename) as name,h.house_no,h.price FROM tenants t inner join houses h on h.id = t.house_id where t.id = {$id} ");
-		foreach($tenants->fetch_array() as $k => $v){
-			if(!is_numeric($k)){
-				$$k = $v;
-			}
-		}
-		$months = abs(strtotime(date('Y-m-d')." 23:59:59") - strtotime($date_in." 23:59:59"));
-		$months = floor(($months) / (30*60*60*24));
-		$data['months'] = $months;
-		$payable= abs($price * $months);
-		$data['payable'] = number_format($payable,2);
-		$paid = $this->db->query("SELECT SUM(amount) as paid FROM payments where id != '$pid' and tenant_id =".$id);
-		$last_payment = $this->db->query("SELECT * FROM payments where id != '$pid' and tenant_id =".$id." order by unix_timestamp(date_created) desc limit 1");
-		$paid = $paid->num_rows > 0 ? $paid->fetch_array()['paid'] : 0;
-		$data['paid'] = number_format($paid,2);
-		$data['last_payment'] = $last_payment->num_rows > 0 ? date("M d, Y",strtotime($last_payment->fetch_array()['date_created'])) : 'N/A';
-		$data['outstanding'] = number_format($payable - $paid,2);
-		$data['price'] = number_format($price,2);
-		$data['name'] = ucwords($name);
-		$data['rent_started'] = date('M d, Y',strtotime($date_in));
-
-		return json_encode($data);
-	}
-	
-	function save_payment(){
-		extract($_POST);
-		$data = "";
-		foreach($_POST as $k => $v){
-			if(!in_array($k, array('id','ref_code')) && !is_numeric($k)){
-				if(empty($data)){
-					$data .= " $k='$v' ";
-				}else{
-					$data .= ", $k='$v' ";
-				}
-			}
-		}
-		if(empty($id)){
-			$save = $this->db->query("INSERT INTO payments set $data");
-			$id=$this->db->insert_id;
-		}else{
-			$save = $this->db->query("UPDATE payments set $data where id = $id");
-		}
-
-		if($save){
-			return 1;
-		}
-	}
-	function delete_payment(){
-		extract($_POST);
-		$delete = $this->db->query("DELETE FROM payments where id = ".$id);
-		if($delete){
-			return 1;
-		}
-	}
-}
-<?php
-ini_set('display_errors', 1);
-Class Action {
-	private $db;
-
-	public function __construct() {
-		ob_start();
-   	include 'db_connect.php';
-    
-    $this->db = $conn;
-	}
-	function __destruct() {
-	    $this->db->close();
-	    ob_end_flush();
-	}
-
-	function login() {
-    extract($_POST);
-
-    // Fetch user by username
-    $stmt = $this->db->prepare("SELECT * FROM users WHERE username = ?");
+    // First search in users table
+    $stmt = $this->db->prepare("SELECT * FROM users WHERE username = ? LIMIT 1");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $qry = $stmt->get_result();
 
-    if ($qry->num_rows > 0) {
-        $user = $qry->fetch_assoc();
+    if ($qry->num_rows === 0) {
+        // Fallback to tenants table
+        $stmt = $this->db->prepare("SELECT * FROM tenants WHERE username = ? LIMIT 1");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $qry = $stmt->get_result();
 
-        $passwordFromDb = $user['password'];
-        $passwordOk = false;
-
-        // Check if bcrypt hash (starts with $2y$ or $2a$)
-        if (password_get_info($passwordFromDb)['algo'] !== 0) {
-            $passwordOk = password_verify($password, $passwordFromDb);
-        } else {
-            // Fallback to MD5 check
-            if ($passwordFromDb === md5($password)) {
-                $passwordOk = true;
-                // Upgrade to bcrypt
-                $newHash = password_hash($password, PASSWORD_BCRYPT);
-                $updateStmt = $this->db->prepare("UPDATE users SET password = ? WHERE id = ?");
-                $updateStmt->bind_param("si", $newHash, $user['id']);
-                $updateStmt->execute();
-                $updateStmt->close();
-            }
+        if ($qry->num_rows === 0) {
+            echo json_encode(['status'=>'error','msg'=>'User not found']);
+            exit;
         }
-
-        if ($passwordOk) {
-            foreach ($user as $key => $value) {
-                if (!is_numeric($key)) {
-                    $_SESSION['login_' . $key] = $value;
-                }
-            }
-            return 1; // Success
-        }
-    }
-    return 3; // Invalid login
-}
-
-	function login2() {
-    extract($_POST);
-
-    // Fetch user by email
-    $stmt = $this->db->prepare("SELECT * FROM tenants WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $qry = $stmt->get_result();
-
-    if ($qry->num_rows > 0) {
-        $user = $qry->fetch_assoc();
-
-        $passwordFromDb = $user['password'];
-        $passwordOk = false;
-
-        // Check if bcrypt
-        if (password_get_info($passwordFromDb)['algo'] !== 0) {
-            $passwordOk = password_verify($password, $passwordFromDb);
-        } else {
-            // Fallback to MD5 check
-            if ($passwordFromDb === md5($password)) {
-                $passwordOk = true;
-                // Upgrade to bcrypt
-                $newHash = password_hash($password, PASSWORD_BCRYPT);
-                $updateStmt = $this->db->prepare("UPDATE tenants SET password = ? WHERE id = ?");
-                $updateStmt->bind_param("si", $newHash, $user['id']);
-                $updateStmt->execute();
-                $updateStmt->close();
-            }
-        }
-
-        if ($passwordOk) {
-            foreach ($user as $key => $value) {
-                if (!is_numeric($key)) {
-                    $_SESSION['login_' . $key] = $value;
-                }
-            }
-            return 1; // Success
-        }
-    }
-    return 3; // Invalid login
-}
-
-	function logout(){
-		session_destroy();
-		foreach ($_SESSION as $key => $value) {
-			unset($_SESSION[$key]);
-		}
-		header("location:login.php");
-	}
-	function logout2(){
-		session_destroy();
-		foreach ($_SESSION as $key => $value) {
-			unset($_SESSION[$key]);
-		}
-		header("location:../index.php");
-	}
-
-	function save_user(){
-    extract($_POST);
-
-    if (!empty($password)) {
-        // Always hash new passwords with bcrypt
-        $password = password_hash($password, PASSWORD_BCRYPT);
-    }
-
-    // Build query dynamically based on whether it's a new user or update
-    if (empty($id)) {
-        $stmt = $this->db->prepare("INSERT INTO users (name, username, password, type) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("sssi", $name, $username, $password, $type);
+        $table = 'tenants';
     } else {
-        if (!empty($password)) {
-            $stmt = $this->db->prepare("UPDATE users SET name = ?, username = ?, password = ?, type = ? WHERE id = ?");
-            $stmt->bind_param("sssii", $name, $username, $password, $type, $id);
-        } else {
-            $stmt = $this->db->prepare("UPDATE users SET name = ?, username = ?, type = ? WHERE id = ?");
-            $stmt->bind_param("ssii", $name, $username, $type, $id);
-        }
+        $table = 'users';
     }
 
-    $save = $stmt->execute();
-    $stmt->close();
-
-    return $save ? 1 : 0;
-}
-
-	function delete_user(){
-		extract($_POST);
-		$delete = $this->db->query("DELETE FROM users where id = ".$id);
-		if($delete)
-			return 1;
-	}
-	function signup(){
-    extract($_POST);
-
-    if (!empty($password)) {
-        $password = password_hash($password, PASSWORD_BCRYPT);
-    }
-
-    $stmt = $this->db->prepare("INSERT INTO tenants (name, email, contact, password) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("ssss", $name, $email, $contact, $password);
-
-    $save = $stmt->execute();
-    $stmt->close();
-
-    return $save ? 1 : 0;
-}
-
-	function update_account(){
-    extract($_POST);
-
-    if (!empty($password)) {
-        $password = password_hash($password, PASSWORD_BCRYPT);
-        $stmt = $this->db->prepare("UPDATE tenants SET name = ?, email = ?, contact = ?, password = ? WHERE id = ?");
-        $stmt->bind_param("ssssi", $name, $email, $contact, $password, $_SESSION['login_id']);
-    } else {
-        $stmt = $this->db->prepare("UPDATE tenants SET name = ?, email = ?, contact = ? WHERE id = ?");
-        $stmt->bind_param("sssi", $name, $email, $contact, $_SESSION['login_id']);
-    }
-
-    $update = $stmt->execute();
-    $stmt->close();
-
-    return $update ? 1 : 0;
-}
-
-function change_admin_password(){
-    extract($_POST);
-
-    $id = $_SESSION['login_id']; // logged-in admin ID
-
-    // Get current password hash from DB
-    $stmt = $this->db->prepare("SELECT password FROM users WHERE id = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $result = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-
-    if (!$result) {
-        return ['status' => 0, 'msg' => 'User not found.'];
-    }
-
-    $currentHash = $result['password'];
-
-    // Verify current password (supports both bcrypt + MD5 from Step 1)
+    $user = $qry->fetch_assoc();
+    $passwordFromDb = $user['password'];
+    $passwordInfo = password_get_info($passwordFromDb);
     $passwordOk = false;
-    if (password_get_info($currentHash)['algo'] !== 0) {
-        $passwordOk = password_verify($current_password, $currentHash);
-    } else {
-        if ($currentHash === md5($current_password)) {
-            $passwordOk = true;
-        }
+
+    if ($passwordInfo['algo'] !== 0) {
+        $passwordOk = password_verify($password, $passwordFromDb);
+    } elseif ($passwordFromDb === md5($password) || $passwordFromDb === $password) {
+        $passwordOk = true;
     }
 
     if (!$passwordOk) {
-        return ['status' => 0, 'msg' => 'Current password is incorrect.'];
+        echo json_encode(['status'=>'error','msg'=>'Password is incorrect']);
+        exit;
     }
 
-    // Check if new password and confirm match
-    if ($new_password !== $confirm_password) {
-        return ['status' => 0, 'msg' => 'New password and confirmation do not match.'];
+    // Auto-upgrade password to bcrypt if still plain or md5
+    if ($passwordInfo['algo'] === 0) {
+        $newHash = password_hash($password, PASSWORD_BCRYPT);
+        $updateStmt = $this->db->prepare("UPDATE $table SET password = ? WHERE id = ?");
+        $updateStmt->bind_param("si", $newHash, $user['id']);
+        $updateStmt->execute();
+        $updateStmt->close();
     }
 
-    // Hash new password (bcrypt only)
-    $newHash = password_hash($new_password, PASSWORD_BCRYPT);
+    // Store session
+    $_SESSION['login_id'] = $user['id'];
+    $_SESSION['user_type'] = ($table === 'tenants') ? 'tenant' : 'user';
+    foreach ($user as $key => $value) {
+        if (!is_numeric($key)) $_SESSION['login_'.$key] = $value;
+    }
 
-    // Update DB
-    $updateStmt = $this->db->prepare("UPDATE users SET password = ? WHERE id = ?");
-    $updateStmt->bind_param("si", $newHash, $id);
-    $success = $updateStmt->execute();
-    $updateStmt->close();
-
-    return $success 
-        ? ['status' => 1, 'msg' => 'Password updated successfully.'] 
-        : ['status' => 0, 'msg' => 'Password update failed.'];
+    echo json_encode(['status'=>'success','msg'=>'Login successful']);
+    exit;
 }
 
-	function save_settings(){
-		extract($_POST);
-		$data = " name = '".str_replace("'","&#x2019;",$name)."' ";
-		$data .= ", email = '$email' ";
-		$data .= ", contact = '$contact' ";
-		$data .= ", about_content = '".htmlentities(str_replace("'","&#x2019;",$about))."' ";
-		if($_FILES['img']['tmp_name'] != ''){
-						$fname = strtotime(date('y-m-d H:i')).'_'.$_FILES['img']['name'];
-						$move = move_uploaded_file($_FILES['img']['tmp_name'],'assets/uploads/'. $fname);
-					$data .= ", cover_img = '$fname' ";
-
-		}
-		
-		// echo "INSERT INTO system_settings set ".$data;
-		$chk = $this->db->query("SELECT * FROM system_settings");
-		if($chk->num_rows > 0){
-			$save = $this->db->query("UPDATE system_settings set ".$data);
-		}else{
-			$save = $this->db->query("INSERT INTO system_settings set ".$data);
-		}
-		if($save){
-		$query = $this->db->query("SELECT * FROM system_settings limit 1")->fetch_array();
-		foreach ($query as $key => $value) {
-			if(!is_numeric($key))
-				$_SESSION['system'][$key] = $value;
-		}
-
-			return 1;
-				}
-	}
-
-	
-	function save_category(){
-		extract($_POST);
-		$data = " name = '$name' ";
-			if(empty($id)){
-				$save = $this->db->query("INSERT INTO categories set $data");
-			}else{
-				$save = $this->db->query("UPDATE categories set $data where id = $id");
-			}
-		if($save)
-			return 1;
-	}
-	function delete_category(){
-		extract($_POST);
-		$delete = $this->db->query("DELETE FROM categories where id = ".$id);
-		if($delete){
-			return 1;
-		}
-	}
-	function save_house(){
-		extract($_POST);
-		$data = " house_no = '$house_no' ";
-		$data .= ", description = '$description' ";
-		$data .= ", category_id = '$category_id' ";
-		$data .= ", price = '$price' ";
-		$chk = $this->db->query("SELECT * FROM houses where house_no = '$house_no' ")->num_rows;
-		if($chk > 0 ){
-			return 2;
-			exit;
-		}
-			if(empty($id)){
-				$save = $this->db->query("INSERT INTO houses set $data");
-			}else{
-				$save = $this->db->query("UPDATE houses set $data where id = $id");
-			}
-		if($save)
-			return 1;
-	}
-	function delete_house(){
-		extract($_POST);
-		$delete = $this->db->query("DELETE FROM houses where id = ".$id);
-		if($delete){
-			return 1;
-		}
-	}
-	function save_tenant(){
-		extract($_POST);
-		$data = " firstname = '$firstname' ";
-		$data .= ", lastname = '$lastname' ";
-		$data .= ", middlename = '$middlename' ";
-		$data .= ", email = '$email' ";
-		$data .= ", contact = '$contact' ";
-		$data .= ", house_id = '$house_id' ";
-		$data .= ", date_in = '$date_in' ";
-			if(empty($id)){
-				
-				$save = $this->db->query("INSERT INTO tenants set $data");
-			}else{
-				$save = $this->db->query("UPDATE tenants set $data where id = $id");
-			}
-		if($save)
-			return 1;
-	}
-	function delete_tenant(){
-		extract($_POST);
-		$delete = $this->db->query("UPDATE tenants set status = 0 where id = ".$id);
-		if($delete){
-			return 1;
-		}
-	}
-	function get_tdetails(){
-		extract($_POST);
-		$data =array();
-		$tenants =$this->db->query("SELECT t.*,concat(t.lastname,', ',t.firstname,' ',t.middlename) as name,h.house_no,h.price FROM tenants t inner join houses h on h.id = t.house_id where t.id = {$id} ");
-		foreach($tenants->fetch_array() as $k => $v){
-			if(!is_numeric($k)){
-				$$k = $v;
-			}
-		}
-		$months = abs(strtotime(date('Y-m-d')." 23:59:59") - strtotime($date_in." 23:59:59"));
-		$months = floor(($months) / (30*60*60*24));
-		$data['months'] = $months;
-		$payable= abs($price * $months);
-		$data['payable'] = number_format($payable,2);
-		$paid = $this->db->query("SELECT SUM(amount) as paid FROM payments where id != '$pid' and tenant_id =".$id);
-		$last_payment = $this->db->query("SELECT * FROM payments where id != '$pid' and tenant_id =".$id." order by unix_timestamp(date_created) desc limit 1");
-		$paid = $paid->num_rows > 0 ? $paid->fetch_array()['paid'] : 0;
-		$data['paid'] = number_format($paid,2);
-		$data['last_payment'] = $last_payment->num_rows > 0 ? date("M d, Y",strtotime($last_payment->fetch_array()['date_created'])) : 'N/A';
-		$data['outstanding'] = number_format($payable - $paid,2);
-		$data['price'] = number_format($price,2);
-		$data['name'] = ucwords($name);
-		$data['rent_started'] = date('M d, Y',strtotime($date_in));
-
-		return json_encode($data);
-	}
-	
-	function save_payment() {
-    extract($_POST);
-    global $conn;
-
-    // 1. Get tenant's rent from their assigned house
-    $rent_qry = $conn->query("SELECT h.rent_amount 
-        FROM tenants t 
-        INNER JOIN houses h ON t.house_id = h.id 
-        WHERE t.id = {$tenant_id}");
-    $rent_row = $rent_qry->fetch_assoc();
-    $rent_amount = isset($rent_row['rent_amount']) ? $rent_row['rent_amount'] : 0;
-
-    // 2. Get last recorded balance (arrears)
-    $bal_qry = $conn->query("SELECT balance FROM payments 
-        WHERE tenant_id = {$tenant_id} 
-        ORDER BY id DESC LIMIT 1");
-    $prev_balance = ($bal_qry->num_rows > 0) ? $bal_qry->fetch_assoc()['balance'] : 0;
-
-    // 3. Check if tenant has ever made a payment
-    $first_payment = ($bal_qry->num_rows == 0);
-
-    // 4. Deposits (only for first payment)
-    $house_deposit = ($first_payment && isset($_POST['house_deposit'])) ? floatval($_POST['house_deposit']) : 0;
-    $water_deposit = ($first_payment && isset($_POST['water_deposit'])) ? floatval($_POST['water_deposit']) : 0;
-    $electricity_deposit = ($first_payment && isset($_POST['electricity_deposit'])) ? floatval($_POST['electricity_deposit']) : 0;
-
-    // 5. Bills (charged every time)
-    $water_bill = isset($_POST['water_bill']) ? floatval($_POST['water_bill']) : 0;
-
-    // 6. Total due calculation
-    $total_due = $rent_amount + $house_deposit + $water_deposit + $electricity_deposit + $water_bill + $prev_balance;
-
-    // 7. Amount paid
-    $amount_paid = isset($_POST['amount']) ? floatval($_POST['amount']) : 0;
-
-    // 8. New balance (avoid negatives)
-    $new_balance = $total_due - $amount_paid;
-    if ($new_balance < 0) {
-        $new_balance = 0;
+    // ===== SIGNUP =====
+   public function signup() {
+    if (!isset($_POST['fullname'], $_POST['username'], $_POST['email'], $_POST['password'], $_POST['confirm_password'])) {
+        return json_encode(['status' => 'error', 'msg' => 'All fields are required']);
     }
 
-    // 9. Save payment record
-    $stmt = $conn->prepare("INSERT INTO payments (tenant_id, invoice, amount, total_due, balance, date_created) VALUES (?, ?, ?, ?, ?, NOW())");
-    $stmt->bind_param("isdid", $tenant_id, $invoice, $amount_paid, $total_due, $new_balance);
-    
-    if ($stmt->execute()) {
-        return 1; // success
+    $fullname = trim($_POST['fullname']);
+    $username = trim($_POST['username']);
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
+
+    // Block anyone from setting themselves as admin
+    if (isset($_POST['type']) && $_POST['type'] === 'admin') {
+        return json_encode(['status' => 'error', 'msg' => 'Admin accounts can only be created by the system administrator']);
+    }
+
+    if ($password !== $confirm_password) {
+        return json_encode(['status' => 'error', 'msg' => 'Passwords do not match']);
+    }
+
+    if (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
+        return json_encode(['status' => 'error', 'msg' => 'Username can only contain letters, numbers, and underscores']);
+    }
+
+    // Check if username already exists
+    $checkStmt = $this->db->prepare("SELECT id FROM users WHERE username = ? LIMIT 1");
+    $checkStmt->bind_param("s", $username);
+    $checkStmt->execute();
+    $checkStmt->store_result();
+
+    if ($checkStmt->num_rows > 0) {
+        $checkStmt->close();
+        return json_encode(['status' => 'error', 'msg' => 'Username already taken']);
+    }
+    $checkStmt->close();
+
+    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+
+    // Save user as normal (staff or tenant depending on your system default)
+    $type = 'staff'; // or 'tenant' depending on your needs
+    $insertStmt = $this->db->prepare("INSERT INTO users (name, username, email, password, type) VALUES (?, ?, ?, ?, ?)");
+    $insertStmt->bind_param("sssss", $fullname, $username, $email, $hashedPassword, $type);
+
+    if ($insertStmt->execute()) {
+        return json_encode(['status' => 'success', 'redirect' => 'login.php']);
     } else {
-        return 0; // fail
+        return json_encode(['status' => 'error', 'msg' => 'Failed to create account']);
     }
 }
 
+    // ===== LOGOUT =====
+    public function logout($redirect = 'login.php') {
+        session_unset();
+        session_destroy();
+        header("Location: $redirect");
+        exit;
+    }
 
-	function delete_payment(){
-		extract($_POST);
-		$delete = $this->db->query("DELETE FROM payments where id = ".$id);
-		if($delete){
-			return 1;
-		}
-	}
+    public function logout2() {
+        $this->logout('../index.php');
+    }
+
+    // ===== USER MANAGEMENT =====
+    public function save_user() {
+    extract($_POST);
+    $data = " name = '$name', username = '$username'";
+    if (!empty($password)) $data .= ", password = '" . password_hash($password, PASSWORD_BCRYPT) . "'";
+    $data .= ", type = '$type'";
+    $establishment_id = $type == 1 ? 0 : ($establishment_id ?? 0);
+    $data .= ", establishment_id = '$establishment_id'";
+
+    // Check for duplicate username
+    $chk = $this->db->query("SELECT * FROM users WHERE username='$username' AND id != '$id'")->num_rows;
+    if ($chk > 0) return 2;
+
+    // Only allow one admin
+    if ($type == 'admin') { // Or type == 1 depending on your DB
+        $check = $this->db->query("SELECT id FROM users WHERE type = 'admin' LIMIT 1");
+        if ($check->num_rows > 0) {
+            $existing = $check->fetch_assoc();
+            if (empty($id) || $id != $existing['id']) {
+                return json_encode(['status' => 'error', 'msg' => 'Only one admin account is allowed.']);
+            }
+        }
+    }
+
+    if (empty($id)) {
+        $save = $this->db->query("INSERT INTO users SET $data");
+    } else {
+        $save = $this->db->query("UPDATE users SET $data WHERE id = $id");
+    }
+
+    return $save ? 1 : 0;
 }
+
+    public function delete_user() {
+        extract($_POST);
+        $delete = $this->db->query("DELETE FROM users WHERE id = ".$id);
+        return $delete ? 1 : 0;
+    }
+
+    // ===== UPDATE ACCOUNT =====
+    public function update_account() {
+        extract($_POST);
+        $data = "name='".$firstname.' '.$lastname."', username='$email'";
+        if(!empty($password)) $data .= ", password='".password_hash($password, PASSWORD_BCRYPT)."'";
+
+        $chk = $this->db->query("SELECT * FROM users WHERE username='$email' AND id != '{$_SESSION['login_id']}'")->num_rows;
+        if($chk > 0) return 2;
+
+        $save = $this->db->query("UPDATE users SET $data WHERE id='{$_SESSION['login_id']}'");
+        if($save){
+            foreach ($_SESSION as $key => $value) unset($_SESSION[$key]);
+            $_POST['username'] = $email;
+            $_POST['password'] = $password;
+            $this->login2();
+            return 1;
+        }
+    }
+
+    // ===== SETTINGS =====
+    public function save_settings() {
+        extract($_POST);
+        $data = "name='".str_replace("'","&#x2019;",$name)."', email='$email', contact='$contact', about_content='".htmlentities(str_replace("'","&#x2019;",$about))."'";
+        if($_FILES['img']['tmp_name'] != ''){
+            $fname = strtotime(date('y-m-d H:i')).'_'.$_FILES['img']['name'];
+            move_uploaded_file($_FILES['img']['tmp_name'],'assets/uploads/'. $fname);
+            $data .= ", cover_img='$fname'";
+        }
+        $chk = $this->db->query("SELECT * FROM system_settings");
+        if($chk->num_rows > 0) $save = $this->db->query("UPDATE system_settings SET $data");
+        else $save = $this->db->query("INSERT INTO system_settings SET $data");
+
+        if($save){
+            $query = $this->db->query("SELECT * FROM system_settings LIMIT 1")->fetch_array();
+            foreach ($query as $key => $value) if(!is_numeric($key)) $_SESSION['system'][$key] = $value;
+            return 1;
+        }
+    }
+
+    // ===== CATEGORIES =====
+    public function save_category() {
+        extract($_POST);
+        $data = "name='$name'";
+        if(empty($id)) $save = $this->db->query("INSERT INTO categories SET $data");
+        else $save = $this->db->query("UPDATE categories SET $data WHERE id=$id");
+        return $save ? 1 : 0;
+    }
+
+    public function delete_category() {
+        extract($_POST);
+        $delete = $this->db->query("DELETE FROM categories WHERE id=$id");
+        return $delete ? 1 : 0;
+    }
+
+    // ===== HOUSES =====
+    public function save_house() {
+        extract($_POST);
+        $data = "house_no='$house_no', description='$description', category_id='$category_id', price='$price'";
+        $chk = $this->db->query("SELECT * FROM houses WHERE house_no='$house_no'")->num_rows;
+        if($chk > 0) return 2;
+
+        if(empty($id)) $save = $this->db->query("INSERT INTO houses SET $data");
+        else $save = $this->db->query("UPDATE houses SET $data WHERE id=$id");
+
+        return $save ? 1 : 0;
+    }
+
+    public function delete_house() {
+        extract($_POST);
+        $delete = $this->db->query("DELETE FROM houses WHERE id=$id");
+        return $delete ? 1 : 0;
+    }
+
+    // ===== TENANTS =====
+    public function save_tenant() {
+        extract($_POST);
+        $data = "firstname='$firstname', lastname='$lastname', middlename='$middlename', email='$email', contact='$contact', house_id='$house_id', date_in='$date_in'";
+        if(empty($id)) $save = $this->db->query("INSERT INTO tenants SET $data");
+        else $save = $this->db->query("UPDATE tenants SET $data WHERE id=$id");
+        return $save ? 1 : 0;
+    }
+
+    public function delete_tenant() {
+        extract($_POST);
+        $delete = $this->db->query("UPDATE tenants SET status=0 WHERE id=$id");
+        return $delete ? 1 : 0;
+    }
+
+    public function get_tdetails() {
+        extract($_POST);
+        $data = [];
+        $tenants = $this->db->query("SELECT t.*, CONCAT(t.lastname, ', ', t.firstname, ' ', t.middlename) as name, h.house_no, h.price FROM tenants t INNER JOIN houses h ON h.id=t.house_id WHERE t.id={$id}");
+        foreach($tenants->fetch_array() as $k => $v) if(!is_numeric($k)) $$k = $v;
+
+        $months = floor(abs(strtotime(date('Y-m-d 23:59:59')) - strtotime($date_in.' 23:59:59')) / (30*60*60*24));
+        $payable = $price * $months;
+        $paidRes = $this->db->query("SELECT SUM(amount) as paid FROM payments WHERE tenant_id=$id");
+        $paid = $paidRes->num_rows > 0 ? $paidRes->fetch_array()['paid'] : 0;
+        $last_paymentRes = $this->db->query("SELECT * FROM payments WHERE tenant_id=$id ORDER BY unix_timestamp(date_created) DESC LIMIT 1");
+        $last_payment = $last_paymentRes->num_rows > 0 ? date("M d, Y",strtotime($last_paymentRes->fetch_array()['date_created'])) : 'N/A';
+
+        $data['months'] = $months;
+        $data['payable'] = number_format($payable,2);
+        $data['paid'] = number_format($paid,2);
+        $data['last_payment'] = $last_payment;
+        $data['outstanding'] = number_format($payable-$paid,2);
+        $data['price'] = number_format($price,2);
+        $data['name'] = ucwords($name);
+        $data['rent_started'] = date('M d, Y',strtotime($date_in));
+
+        return json_encode($data);
+    }
+
+    // ===== PAYMENTS =====
+    public function save_payment() {
+        extract($_POST);
+        $data = '';
+        foreach($_POST as $k => $v){
+            if(!in_array($k,['id','ref_code']) && !is_numeric($k)) $data .= empty($data) ? " $k='$v'" : ", $k='$v'";
+        }
+        if(empty($id)){
+            $save = $this->db->query("INSERT INTO payments SET $data");
+            $id=$this->db->insert_id;
+        }else $save = $this->db->query("UPDATE payments SET $data WHERE id=$id");
+        return $save ? 1 : 0;
+    }
+
+    public function delete_payment() {
+        extract($_POST);
+        $delete = $this->db->query("DELETE FROM payments WHERE id=$id");
+        return $delete ? 1 : 0;
+    }
+}
+?>

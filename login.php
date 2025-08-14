@@ -17,174 +17,161 @@ ob_end_flush();
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
 <title><?php echo $_SESSION['system']['name'] ?></title>
 <?php include('./header.php'); ?>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
 <style>
-body {
+/* --- your CSS unchanged --- */
+* {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+body {
   height: 100vh;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: url('assets/uploads/login-bg.jpg') no-repeat center center/cover;
+  background: url('assets/uploads/house-bg.jpg') no-repeat center center/cover;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
   overflow: hidden;
-  color: white;
 }
-
-/* Overlay for dim effect */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 0;
-}
-
-/* Page Title */
 .page-title {
-  font-size: 3.5rem;
-  font-weight: 800;
-  text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
-  margin-bottom: 2rem;
-  z-index: 10;
-  animation: glow 2s infinite alternate;
-}
-
-/* Glow animation for title */
-@keyframes glow {
-  from { text-shadow: 0 0 10px #00f7ff, 0 0 20px #00f7ff, 0 0 30px #00f7ff; }
-  to { text-shadow: 0 0 20px #ffffff, 0 0 30px #00f7ff, 0 0 40px #00f7ff; }
-}
-
-/* Login card container */
-#login-right {
-  position: relative;
-  z-index: 1;
-  width: 380px;
-  background: rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 30px;
-  color: white;
-  box-sizing: border-box;
-}
-
-/* Neon rotating border */
-#login-right::before {
-  content: '';
-  position: absolute;
-  top: -3px;
-  left: -3px;
-  right: -3px;
-  bottom: -3px;
-  border-radius: 20px;
-  background: linear-gradient(270deg, #00f7ff, #ffffff, #00f7ff);
-  background-size: 600% 600%;
-  animation: border-rotate 5s linear infinite;
-  z-index: -1;
-}
-
-@keyframes border-rotate {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-/* Card title */
-.login-card-title {
+  font-size: 3rem;
   font-weight: 700;
-  font-size: 1.8rem;
-  margin-bottom: 1.5rem;
+  color: black;
+  text-shadow: 0 0 15px rgba(0, 200, 255, 0.6);
+  margin-bottom: 20px;
+  z-index: 10;
   text-align: center;
+  padding: 0 10px;
 }
-
-/* Inputs */
+#login-wrapper {
+  position: relative;
+  z-index: 5;
+}
+#login-right {
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 40px;
+  width: 380px;
+  max-width: 95%;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.login-card-title {
+  font-size: 2rem;
+  font-weight: 600;
+  text-align: center;
+  color: #007baf;
+  margin-bottom: 20px;
+}
 .form-control {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.8);
   border: none;
-  color: white;
-  padding: 10px;
+  padding: 12px 15px;
+  font-size: 1.1em;
+  color: #007baf;
+  border-radius: 5px;
+  margin-bottom: 20px;
 }
-
+.form-control::placeholder {
+  color: #007baf;
+}
 .form-control:focus {
-  border: 1px solid #00f7ff;
   outline: none;
-  box-shadow: 0 0 10px #00f7ff;
+  border: 1px solid #00aaff;
+  box-shadow: 0 0 8px #00aaff;
 }
-
-/* Login button */
 .btn-primary {
-  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  background: #00aaff;
   border: none;
+  padding: 12px;
+  font-size: 1.2em;
+  font-weight: 500;
+  width: 100%;
+  color: white;
   transition: all 0.3s ease;
+  border-radius: 5px;
 }
-
 .btn-primary:hover {
-  background: linear-gradient(135deg, #0072ff, #00c6ff);
+  background: #008fcc;
   transform: scale(1.05);
-  box-shadow: 0 0 20px #00f7ff;
+  box-shadow: 0 0 15px #00aaff;
 }
-
 .alert {
   background: rgba(255, 0, 0, 0.7);
   color: white;
   border: none;
+  padding: 10px;
+  border-radius: 5px;
+}
+@media (max-width: 420px) {
+  .page-title {
+    font-size: 2rem;
+  }
 }
 </style>
 </head>
 <body>
 
-<div class="page-title">JOvic Park</div>
+<div class="page-title">Welcome to Jovic Park Rental Management System</div>
 
 <main>
+  <div id="login-wrapper" class="container d-flex justify-content-center">
     <div id="login-right">
-        <div class="w-100">
-            <div class="card col-md-12 mx-auto" style="background:transparent; border:none;">
-                <div class="card-body">
-                    <div class="login-card-title">Login</div>
-                    <form id="login-form" autocomplete="off">
-                        <div class="form-group mb-3">
-                            <input type="text" id="username" name="username" class="form-control" placeholder="Enter Username" required>
-                        </div>
-                        <div class="form-group mb-4">
-                            <input type="password" id="password" name="password" class="form-control" placeholder="Enter Password" required>
-                        </div>
-                        <center>
-                            <button type="submit" class="btn btn-primary btn-block col-md-6">Login</button>
-                        </center>
-                    </form>
-                </div>
-            </div>
+      <div class="login-card-title">Login</div>
+      <form id="login-form" autocomplete="off">
+        <div class="mb-3">
+          <input type="text" id="username" name="username" class="form-control" placeholder="Enter Username" required>
         </div>
+        <div class="mb-4">
+          <input type="password" id="password" name="password" class="form-control" placeholder="Enter Password" required>
+        </div>
+        <center>
+          <button type="submit" class="btn btn-primary">Login</button>
+        </center>
+        <div class="text-center mt-3">
+          <a href="register.php" style="color:#007baf; font-weight:500; text-decoration:none;">Don't have an account? Sign up</a>
+        </div>
+        <div class="text-center mt-2">
+          <a href="forgot_password.php" style="color:#007baf; font-weight:500; text-decoration:none;">Forgot password?</a>
+        </div>
+      </form>
     </div>
+  </div>
 </main>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $('#login-form').submit(function(e){
     e.preventDefault();
-
     let btn = $('#login-form button[type="submit"]');
     btn.attr('disabled', true).html('Logging in...');
-
     $('.alert-danger').remove();
 
     $.ajax({
         url: 'ajax.php?action=login',
         method: 'POST',
         data: $(this).serialize(),
+        dataType: 'json', // expecting JSON from PHP
         error: function(err){
-            console.log(err);
+            console.error(err);
+            $('#login-form').prepend('<div class="alert alert-danger">Server error. Please try again.</div>');
             btn.attr('disabled', false).html('Login');
         },
         success: function(resp){
-            if(resp == 1){
-                location.href = 'index.php?page=home';
-            } else if (resp == 2){
-                location.href = 'index.php?page=tenant_dashboard';
+            console.log("Login Response:", resp);
+
+            if(resp.status === 'success'){
+                if(resp.debug && resp.debug.table === 'tenants'){
+                    location.href = 'index.php?page=tenant_dashboard';
+                } else {
+                    location.href = 'index.php?page=home';
+                }
             } else {
-                $('#login-form').prepend('<div class="alert alert-danger">Username or password is incorrect.</div>');
+                $('#login-form').prepend('<div class="alert alert-danger">'+ (resp.msg || 'Username or password is incorrect.') +'</div>');
                 btn.attr('disabled', false).html('Login');
             }
         }

@@ -1,4 +1,14 @@
 <?php include 'db_connect.php' ?>
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Prevent undefined index notices
+$login_type = $_SESSION['login_type'] ?? null;
+$login_name = $_SESSION['login_name'] ?? 'Guest';
+?>
+
 <style>
    span.float-right.summary_icon {
     font-size: 3rem;
@@ -271,7 +281,8 @@ span.float-right.summary_icon {
     <a href="index.php?page=tenants"><i class="fas fa-user-friends"></i> Tenants</a>
     <a href="index.php?page=invoices"><i class="fas fa-file-invoice"></i> Payments</a>
     <a href="index.php?page=reports"><i class="fas fa-chart-line"></i> Reports</a>
-    <?php if($_SESSION['login_type'] == 1): ?>
+   <?php if($login_type == 1): ?>
+
         <a href="index.php?page=users"><i class="fas fa-users-cog"></i> Users</a>
     <?php endif; ?>
 </div>
@@ -282,7 +293,8 @@ span.float-right.summary_icon {
     <hr>
     <div class="card mb-4">
         <div class="card-body">
-            <h4>Welcome back, <?php echo $_SESSION['login_name']; ?>!</h4>
+            <h4>Welcome back, <?php echo htmlspecialchars($login_name); ?>
+!</h4>
         </div>
     </div>
 
