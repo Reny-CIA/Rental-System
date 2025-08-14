@@ -1,0 +1,75 @@
+Jovic Park Rental Management System
+by Peter Kiarie
+
+Project: House Rental Management System using PHP/MySQLi
+About
+The Jovic Park Rental Management System is a complete PHP/MySQLi-based solution designed to streamline and simplify the operations of a house rental business. It manages house categories, property details, tenant information, and monthly payments — all in one central platform.
+
+The system allows administrators to track which tenant occupies which house, the rental rate, outstanding balances, and any advance payments. Balances can be positive (amount owed) or negative (advance credit), and advance payments are automatically applied toward future rent.
+
+With this system, management can quickly retrieve payment histories, monitor outstanding balances, and generate professional, printable reports.
+
+Features
+Login Page
+Secure login for administrators and staff to access system data and features.
+
+Dashboard
+Displays key business metrics:
+
+Total number of houses
+
+Total number of tenants
+
+Total amount paid in the current month
+
+House Type Management
+Maintain and organize all property categories or types.
+
+Houses Management
+Add, edit, and remove rental properties, with details linked to tenants.
+
+Tenants Management
+View and manage all active tenants. Includes tenant-specific payment history and rental details.
+
+Payments Management
+Record, update, and track rental payments with automatic balance calculations.
+
+Reports
+Easily access a variety of reports, including:
+
+Monthly Payment Report — Shows all tenant payments within a selected month, ready for printing.
+
+Rental Balances Report — Displays balances or advances for all tenants, also ready for printing.
+
+User Management
+Create and manage system users with secure credentials.
+
+How to Run the System
+Download the source code and extract the ZIP file.
+
+Install and set up a local web server (e.g., XAMPP) that supports PHP.
+
+Create the database in your local server’s database tool (e.g., phpMyAdmin) and name it:
+
+house_rental_db
+Import the SQL file located in the project’s database folder.
+
+Place the project folder in your local server’s web root directory, e.g.:
+
+
+
+
+C:\xampp\htdocs\
+Run the project in your browser:
+
+
+
+
+http://localhost/jovic-park-rental-management-system
+
+Default Admin Credentials
+Username: admin  
+Password: admin123  
+Conclusion
+The Jovic Park Rental Management System by Peter Kiarie provides a clean, efficient, and reliable way to manage rental properties and tenant records. It eliminates manual tracking, reduces errors, and gives instant access to vital business insights.
+
