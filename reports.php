@@ -14,6 +14,7 @@ include 'db_connect.php';
 								</div>
 								<div class="card-footer">
 									<div class="col-md-12">
+<<<<<<< HEAD
 										<a href="index.php?page=payment_report" class="d-flex justify-content-between"> 
 											<span>View Report</span> 
 											<span class="fa fa-chevron-circle-right"></span>
@@ -22,6 +23,9 @@ include 'db_connect.php';
 											<span>Download PDF</span> 
 											<span class="fa fa-file-pdf-o"></span>
 										</a>
+=======
+										<a href="index.php?page=payment_report" class="d-flex justify-content-between"> <span>View Report</span> <span class="fa fa-chevron-circle-right"></span></a>
+>>>>>>> dc6254e556f2449dc175ca68bcdb78f834e222de
 									</div>
 								</div>
 							</div>
@@ -33,6 +37,7 @@ include 'db_connect.php';
 								</div>
 								<div class="card-footer">
 									<div class="col-md-12">
+<<<<<<< HEAD
 										<a href="index.php?page=balance_report" class="d-flex justify-content-between"> 
 											<span>View Report</span> 
 											<span class="fa fa-chevron-circle-right"></span>
@@ -41,6 +46,9 @@ include 'db_connect.php';
 											<span>Download PDF</span> 
 											<span class="fa fa-file-pdf-o"></span>
 										</a>
+=======
+										<a href="index.php?page=balance_report" class="d-flex justify-content-between"> <span>View Report</span> <span class="fa fa-chevron-circle-right"></span></a>
+>>>>>>> dc6254e556f2449dc175ca68bcdb78f834e222de
 									</div>
 								</div>
 							</div>
@@ -50,4 +58,8 @@ include 'db_connect.php';
 			</div>
 		</div>
 	</div>
+<<<<<<< HEAD
 </div>
+=======
+</div>
+>>>>>>> dc6254e556f2449dc175ca68bcdb78f834e222de
